@@ -14,6 +14,6 @@ project
 
 And Wrench.java's package declaration is `tools`
 
-Then you would need to run javac MyApp.java from the `project/src/app` directory to ensure the `project/src/app/tools` directory is found.
+Then you would need to run `javac MyApp.java` from the `project/src/app` directory to ensure the `project/src/app/tools` directory is found.
 
 ### Using 3rd-party packages
