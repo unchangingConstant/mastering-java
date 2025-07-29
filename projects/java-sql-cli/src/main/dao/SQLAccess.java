@@ -1,4 +1,4 @@
-package app.main.dao;
+package dao;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -22,25 +22,6 @@ public class SQLAccess {
             System.out.println(e.getMessage());
         }
 
-    }
-
-    /**
-     * Verifies that the database has the expected schema:
-     * 
-     * STUDENTS
-     * id INTEGER PRIMARY KEY AUTOINCREMENT
-     * name TEXT NOT NULL
-     * 
-     * VISITS
-     * id INTEGER PRIMARY KEY AUTOINCREMENT
-     * studentId INTEGER FOREIGN KEY
-     * inTime TEXT NOT NULL
-     * outTime TEXT
-     * 
-     * TODO: IMPLEMENT!
-     */
-    private void verifyDatabase() {
-        return;
     }
 
 }

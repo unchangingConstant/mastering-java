@@ -1,6 +1,4 @@
-package app.main;
-
-import app.main.dao.SQLAccess;
+import dao.SQLAccess;
 
 /**
  * Builds the app
