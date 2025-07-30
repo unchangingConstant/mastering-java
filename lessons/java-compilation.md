@@ -8,7 +8,7 @@ project
 -   src
     -   app
         -   tools
-            - Wrench.java
+            -   Wrench.java
         -   MyApp.java
 ```
 
