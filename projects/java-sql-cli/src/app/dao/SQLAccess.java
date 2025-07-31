@@ -10,7 +10,8 @@ import java.sql.SQLException;
 public class SQLAccess {
 
     // Database assumed to be located in root directory of repository
-    private final String dbpath = "jdbc:sqlite:../../database.db";
+    // Project assumed to be run from target dir
+    private final String dbpath = "jdbc:sqlite:../database.db";
 
     public SQLAccess() {
 
