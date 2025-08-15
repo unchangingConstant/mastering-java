@@ -11,10 +11,11 @@ public class SQLAccess {
 
     // Database assumed to be located in root directory of repository
     // Project assumed to be run from target dir
-    private final String dbpath = "jdbc:sqlite:../database.db";
+    private final String dbpath;
 
-    public SQLAccess() {
-        try (Connection conn = DriverManager.getConnection(dbpath)) {
+    public SQLAccess(String dbpath) {
+        this.dbpath = dbpath;
+        try (Connection conn = DriverManager.getConnection(String.format("jdbc:sqlite:%s", dbpath))) {
             // Validates that database works and stuff
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -38,8 +39,8 @@ public class SQLAccess {
         return null;
     }
 
-    public String[][] clear() {
-        return null;
+    public boolean clear() {
+        return false;
     }
 
     public String[] listTables() {

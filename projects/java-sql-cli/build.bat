@@ -5,5 +5,5 @@
 cd src
 javac -d ..\target app\SQLCLI.java
 cd ..\target
-:: What does -cp ".;lib\*" do, you ask? This adds both "." and "lib\*" to the class path!
-java -cp ".;lib\*" app.SQLCLI
+:: What does -cp ".;lib\*" do, you ask? This adds both "..\target\*" and "..\lib\*" to the class path!
+java -cp ".;..\lib\*" app.SQLCLI ..\database.db
