@@ -2,7 +2,11 @@ package app.dao;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Data access object handles all logic for SQL data management
@@ -14,49 +18,59 @@ public class SQLAccess {
     private final String dbpath;
 
     public SQLAccess(String dbpath) {
-        this.dbpath = dbpath;
-        try (Connection conn = DriverManager.getConnection(String.format("jdbc:sqlite:%s", dbpath))) {
+        this.dbpath = String.format("jdbc:sqlite:%s", dbpath);
+        try (Connection conn = DriverManager.getConnection(this.dbpath)) {
             // Validates that database works and stuff
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+            System.exit(100);
         }
     }
 
-    public boolean insert(String[] entry) {
-        // Boolean indicates success or failure of insert
+    public boolean insertStudent(String firstName, String middleName, String lastName) {
+        executeQuery(String.format(null)); // no worky
         return false;
     }
 
-    public String[] deleteById(int id) {
-        return null;
-    }
+    public List<String> selectStudents() {
+        ResultSet rs = executeQuery(String.format("SELECT * FROM students"));
+        ArrayList<String> students = new ArrayList<>();
 
-    public String[] selectById(int id) {
-        return null;
-    }
-
-    public String[][] selectAll() {
-        return null;
-    }
-
-    public boolean clear() {
-        return false;
-    }
-
-    public String[] listTables() {
-        return null;
-    }
-
-    // Is this possible?
-    public Object tableSchema(String tableName) {
-        return null;
-    }
-
-    private Connection connection() {
         try {
-            return DriverManager.getConnection(dbpath);
+            while (rs.next()) {
+                students.add(String.format("%d %s %s %s", rs.getInt(0), rs.getString(1), rs.getString(2),
+                        rs.getString(3)));
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Failure to connect to SQLite Databse, ", e);
+            return null;
         }
+
+        System.out.println(students.toString());
+
+        return students;
+    }
+
+    private ResultSet executeQuery(String query) {
+        Connection conn;
+        ResultSet result = null;
+
+        try {
+            conn = DriverManager.getConnection(dbpath);
+        } catch (SQLException e) {
+            System.out.println(e);
+            System.exit(101);
+        }
+
+        try {
+            conn = DriverManager.getConnection(dbpath);
+            Statement stmt = conn.createStatement();
+            result = stmt.executeQuery(query);
+            conn.close();
+        } catch (SQLException e) {
+            System.out.println("SQLAccess.executeQuery() execution failure");
+            System.exit(102);
+        }
+
+        return result;
     }
 }

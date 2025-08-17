@@ -23,24 +23,43 @@ public class SQLView {
         }
         this.service = service;
         this.out = new PrintStream(out);
+        this.in = in;
     }
 
     public void run() {
+        boolean running = true;
         Scanner scnr = new Scanner(this.in);
 
-        while (true) {
+        while (running) {
+            this.out.print("Enter next command: ");
             execute(scnr.nextLine());
         }
+
     }
 
     private void execute(String command) {
         Scanner cmd = new Scanner(command);
         switch (cmd.next()) {
-            case "display":
-                display();
+            case "display": // add display student's visits, student list
+                switch (cmd.next()) {
+                    case "students":
+                        displayStudents();
+                        break;
+                    default:
+                        break;
+                }
                 break;
             case "insert":
-                insert(cmd.next());
+                switch (cmd.next()) {
+                    case "student":
+                        // insertStudent(cmd.nextLine());
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case "delete":
+                delete();
                 break;
             default:
                 error();
@@ -52,16 +71,35 @@ public class SQLView {
 
     }
 
-    private void insert(String sample) {
+    private void insertStudent(String params) {
+
+        String[] name = params.split("\\s+");
+
+        switch (name.length) {
+            case 2:
+                this.service.insertStudent(new String[] { name[0], name[1] });
+                break;
+            case 3:
+                this.service.insertStudent(new String[] { name[0], name[1], name[2] });
+                break;
+            default:
+                // command error message
+                break;
+        }
+    }
+
+    private void displayStudents() {
+        this.out.println("STUDENTS IN TABLE:");
+        this.out.println(this.service.displayStudents());
+        this.out.println("END OF TABLE");
+    }
+
+    private void delete() {
 
     }
 
     private void error() {
 
-    }
-
-    private boolean valid(String command) {
-        return false;
     }
 
 }
