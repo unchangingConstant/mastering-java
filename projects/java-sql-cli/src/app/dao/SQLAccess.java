@@ -37,15 +37,16 @@ public class SQLAccess {
         ArrayList<String> students = new ArrayList<>();
 
         try {
-            while (rs.next()) {
-                students.add(String.format("%d %s %s %s", rs.getInt(0), rs.getString(1), rs.getString(2),
-                        rs.getString(3)));
-            }
+            rs.next();
+            System.out.println(rs.getString(1));
+            // while (rs.next()) {
+            // students.add(String.format("%d %s %s %s", rs.getInt(0), rs.getString(1),
+            // rs.getString(2),
+            // rs.getString(3)));
+            // }
         } catch (SQLException e) {
             return null;
         }
-
-        System.out.println(students.toString());
 
         return students;
     }
