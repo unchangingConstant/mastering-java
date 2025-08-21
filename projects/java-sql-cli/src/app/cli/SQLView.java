@@ -91,7 +91,7 @@ public class SQLView {
     private void displayStudents() {
         this.out.println("STUDENTS IN TABLE:");
         this.out.println(this.service.displayStudents());
-        this.out.println("END OF TABLE");
+        this.out.print("END OF TABLE\n");
     }
 
     private void delete() {

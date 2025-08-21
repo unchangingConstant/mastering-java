@@ -21,6 +21,7 @@ public class SQLAccess {
         this.dbpath = String.format("jdbc:sqlite:%s", dbpath);
         try (Connection conn = DriverManager.getConnection(this.dbpath)) {
             // Validates that database works and stuff
+            conn.close();// necessary?
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             System.exit(100);
@@ -28,50 +29,78 @@ public class SQLAccess {
     }
 
     public boolean insertStudent(String firstName, String middleName, String lastName) {
-        executeQuery(String.format(null)); // no worky
+        // executeQuery(String.format(null)); // no worky
         return false;
     }
 
     public List<String> selectStudents() {
-        ResultSet rs = executeQuery(String.format("SELECT * FROM students"));
+        Connection conn = connection();
+        ResultSet rs = executeQuery(conn, "SELECT * FROM students");
         ArrayList<String> students = new ArrayList<>();
 
         try {
-            rs.next();
-            System.out.println(rs.getString(1));
-            // while (rs.next()) {
-            // students.add(String.format("%d %s %s %s", rs.getInt(0), rs.getString(1),
-            // rs.getString(2),
-            // rs.getString(3)));
-            // }
+            while (rs.next()) {
+                students.add(String.format("%d %s %s %s", rs.getInt(1), rs.getString(2),
+                        rs.getString(3),
+                        rs.getString(4)));
+            }
         } catch (SQLException e) {
-            return null;
+            throw new RuntimeException(e);
+            // return null;
         }
 
         return students;
     }
 
-    private ResultSet executeQuery(String query) {
-        Connection conn;
-        ResultSet result = null;
+    private Connection connection() {
+        Connection conn = null;
 
         try {
             conn = DriverManager.getConnection(dbpath);
+            /*
+             * A result set cannot be accessed if a connection is closed.
+             * TODO research this more in depth
+             */
+            // conn.close();
         } catch (SQLException e) {
-            System.out.println(e);
-            System.exit(101);
+            // TODO understand how connections and SQLExceptions work and write about them
+            e.printStackTrace(System.err);
+            System.err.println("SQLState: " +
+                    e.getSQLState());
+            System.err.println("Error Code: " +
+                    e.getErrorCode());
+            System.err.println("Message: " + e.getMessage());
+            Throwable t = e.getCause();
+            while (t != null) {
+                System.out.println("Cause: " + t);
+                t = t.getCause();
+            }
         }
 
+        return conn;
+    }
+
+    private ResultSet executeQuery(Connection conn, String query) {
+        ResultSet rs = null;
+
         try {
-            conn = DriverManager.getConnection(dbpath);
             Statement stmt = conn.createStatement();
-            result = stmt.executeQuery(query);
-            conn.close();
+            rs = stmt.executeQuery(query);
         } catch (SQLException e) {
-            System.out.println("SQLAccess.executeQuery() execution failure");
-            System.exit(102);
+            // TODO understand how connections and SQLExceptions work and write about them
+            e.printStackTrace(System.err);
+            System.err.println("SQLState: " +
+                    e.getSQLState());
+            System.err.println("Error Code: " +
+                    e.getErrorCode());
+            System.err.println("Message: " + e.getMessage());
+            Throwable t = e.getCause();
+            while (t != null) {
+                System.out.println("Cause: " + t);
+                t = t.getCause();
+            }
         }
 
-        return result;
+        return rs;
     }
 }

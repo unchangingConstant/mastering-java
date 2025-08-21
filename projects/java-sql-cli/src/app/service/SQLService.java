@@ -43,7 +43,7 @@ public class SQLService {
         StringBuilder output = new StringBuilder();
 
         for (String student : students) {
-            output.append(students).append("\n");
+            output.append(student).append("\n");
         }
 
         return output.toString();
