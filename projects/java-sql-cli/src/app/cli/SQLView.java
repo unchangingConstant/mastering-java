@@ -3,6 +3,8 @@ package app.cli;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import app.service.*;
@@ -32,12 +34,13 @@ public class SQLView {
 
         while (running) {
             this.out.print("Enter next command: ");
-            execute(scnr.nextLine());
+            if (!execute(scnr.nextLine())) {
+                return;
+            }
         }
-
     }
 
-    private void execute(String command) {
+    private boolean execute(String command) {
         Scanner cmd = new Scanner(command);
         switch (cmd.next()) {
             case "display": // add display student's visits, student list
@@ -52,19 +55,30 @@ public class SQLView {
             case "insert":
                 switch (cmd.next()) {
                     case "student":
-                        // insertStudent(cmd.nextLine());
+                        insertStudent(cmd.nextLine().trim());
                         break;
                     default:
+                        // error message
                         break;
                 }
                 break;
             case "delete":
-                delete();
+                switch (cmd.next()) {
+                    case "student":
+                        deleteStudent(cmd.nextLine().trim());
+                        break;
+                    default:
+                        // error message
+                        break;
+                }
                 break;
+            case "q":
+                return false;
             default:
-                error();
+                error(); // nah delyeet()
                 break;
         }
+        return true;
     }
 
     private void display() {
@@ -74,32 +88,39 @@ public class SQLView {
     private void insertStudent(String params) {
 
         String[] name = params.split("\\s+");
+        String result = null;
 
+        // puts this logic in the service layer
         switch (name.length) {
             case 2:
-                this.service.insertStudent(new String[] { name[0], name[1] });
+                result = this.service.insertStudent(new String[] { name[0], name[1] });
                 break;
             case 3:
-                this.service.insertStudent(new String[] { name[0], name[1], name[2] });
+                result = this.service.insertStudent(new String[] { name[0], name[1], name[2] });
                 break;
             default:
-                // command error message
+                // write better error message
+                result = "Invalid params";
                 break;
         }
+
+        this.out.println(result);
     }
 
     private void displayStudents() {
+        List<String> students = this.service.displayStudents();
         this.out.println("STUDENTS IN TABLE:");
-        this.out.println(this.service.displayStudents());
+        for (int i = 0; i < students.size(); i++) {
+            this.out.println(students.get(i));
+        }
         this.out.print("END OF TABLE\n");
     }
 
-    private void delete() {
-
+    private void deleteStudent(String params) {
+        throw new NoSuchElementException();
     }
 
     private void error() {
 
     }
-
 }

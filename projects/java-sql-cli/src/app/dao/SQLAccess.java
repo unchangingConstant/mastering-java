@@ -2,54 +2,106 @@ package app.dao;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * Data access object handles all logic for SQL data management
  */
 public class SQLAccess {
 
-    // Database assumed to be located in root directory of repository
-    // Project assumed to be run from target dir
     private final String dbpath;
 
     public SQLAccess(String dbpath) {
         this.dbpath = String.format("jdbc:sqlite:%s", dbpath);
         try (Connection conn = DriverManager.getConnection(this.dbpath)) {
             // Validates that database works and stuff
-            conn.close();// necessary?
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            System.exit(100);
+            throw new RuntimeException(e);
         }
     }
 
-    public boolean insertStudent(String firstName, String middleName, String lastName) {
-        // executeQuery(String.format(null)); // no worky
-        return false;
+    public void insertStudent(String firstName, String middleName, String lastName) {
+        Connection conn = connection();
+        Statement stmt = statement(conn);
+        try {
+            stmt.addBatch(
+                    String.format("INSERT INTO students (firstName, middleName, lastName) VALUES ('%s', %s, '%s');",
+                            firstName,
+                            middleName != null ? "'" + middleName + "'" : "NULL",
+                            lastName));
+            stmt.executeBatch();
+            conn.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    // refactor to return Object[] list
     public List<String> selectStudents() {
         Connection conn = connection();
-        ResultSet rs = executeQuery(conn, "SELECT * FROM students");
+        Statement stmt = statement(conn);
         ArrayList<String> students = new ArrayList<>();
 
         try {
+            ResultSet rs = stmt.executeQuery("SELECT * FROM students");
             while (rs.next()) {
-                students.add(String.format("%d %s %s %s", rs.getInt(1), rs.getString(2),
-                        rs.getString(3),
-                        rs.getString(4)));
+                String middleName = rs.getString(3);
+                String student = String.format("%d %s %s%s",
+                        rs.getInt(1),
+                        rs.getString(2),
+                        middleName != null ? middleName + " " : "",
+                        rs.getString(4));
+                students.add(student);
             }
+            conn.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
-            // return null;
         }
 
         return students;
+    }
+
+    private void deleteStudent(String[] fullName) {
+        Connection conn = connection();
+        try {
+            /*
+             * first, creates set with id, row_count, where id is the id of the student and
+             * row_count is the number of times a student with a name identical to it
+             * occurs. Call it 'matching_rows'
+             * 
+             * Ex: Say we have two Ethans with ids one and two
+             * matching_rows would be:
+             * 1, 2
+             * 2, 2
+             */
+            PreparedStatement stmt = conn.prepareStatement("""
+                    WITH matching_rows AS (
+                        SELECT id, COUNT(*) OVER() as row_count
+                        FROM students
+                        WHERE firstName = ? AND middleName = ? AND lastName = ?
+                    )
+                    DELETE FROM users
+                    WHERE id IN (
+                        SELECT id
+                        FROM matching_rows
+                        WHERE row_count = 1
+                    );
+                    """);
+            stmt.setString(1, fullName[0]);
+            stmt.setString(2, fullName[1]);
+            stmt.setString(3, fullName[2]);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        throw new NoSuchElementException();
     }
 
     private Connection connection() {
@@ -57,50 +109,23 @@ public class SQLAccess {
 
         try {
             conn = DriverManager.getConnection(dbpath);
-            /*
-             * A result set cannot be accessed if a connection is closed.
-             * TODO research this more in depth
-             */
-            // conn.close();
         } catch (SQLException e) {
-            // TODO understand how connections and SQLExceptions work and write about them
-            e.printStackTrace(System.err);
-            System.err.println("SQLState: " +
-                    e.getSQLState());
-            System.err.println("Error Code: " +
-                    e.getErrorCode());
-            System.err.println("Message: " + e.getMessage());
-            Throwable t = e.getCause();
-            while (t != null) {
-                System.out.println("Cause: " + t);
-                t = t.getCause();
-            }
+            throw new RuntimeException(e);
         }
 
         return conn;
     }
 
-    private ResultSet executeQuery(Connection conn, String query) {
-        ResultSet rs = null;
+    // You don't need this
+    private Statement statement(Connection conn) {
+        Statement stmt = null;
 
         try {
-            Statement stmt = conn.createStatement();
-            rs = stmt.executeQuery(query);
+            stmt = conn.createStatement();
         } catch (SQLException e) {
-            // TODO understand how connections and SQLExceptions work and write about them
-            e.printStackTrace(System.err);
-            System.err.println("SQLState: " +
-                    e.getSQLState());
-            System.err.println("Error Code: " +
-                    e.getErrorCode());
-            System.err.println("Message: " + e.getMessage());
-            Throwable t = e.getCause();
-            while (t != null) {
-                System.out.println("Cause: " + t);
-                t = t.getCause();
-            }
+            throw new RuntimeException(e);
         }
 
-        return rs;
+        return stmt;
     }
 }
