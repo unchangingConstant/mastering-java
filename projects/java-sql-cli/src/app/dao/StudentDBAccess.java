@@ -13,17 +13,20 @@ import java.util.NoSuchElementException;
 /**
  * Data access object handles all logic for SQL data management
  */
-public class SQLAccess {
+public class StudentDBAccess {
 
     private final String dbpath;
 
-    public SQLAccess(String dbpath) {
+    public StudentDBAccess(String dbpath) {
         this.dbpath = String.format("jdbc:sqlite:%s", dbpath);
         try (Connection conn = DriverManager.getConnection(this.dbpath)) {
             // Validates that database works and stuff
+            // should check that required tables exist and stuff
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+
     }
 
     public void insertStudent(String firstName, String middleName, String lastName) {
@@ -67,8 +70,9 @@ public class SQLAccess {
         return students;
     }
 
-    private void deleteStudent(String[] fullName) {
+    public void deleteStudent(String firstName, String middleName, String lastName) {
         Connection conn = connection();
+        int rows_affected;
         try {
             /*
              * first, creates set with id, row_count, where id is the id of the student and
@@ -79,29 +83,35 @@ public class SQLAccess {
              * matching_rows would be:
              * 1, 2
              * 2, 2
+             * 
+             * Seems a bit heavy. See if you can shorten it?
              */
             PreparedStatement stmt = conn.prepareStatement("""
                     WITH matching_rows AS (
-                        SELECT id, COUNT(*) OVER() as row_count
+                        SELECT studentId, COUNT(*) OVER() as row_count
                         FROM students
-                        WHERE firstName = ? AND middleName = ? AND lastName = ?
+                        WHERE firstName = ? AND (middleName = ? OR (middleName IS NULL AND ? IS NULL)) AND lastName = ?
                     )
-                    DELETE FROM users
-                    WHERE id IN (
-                        SELECT id
+                    DELETE FROM students
+                    WHERE studentId IN (
+                        SELECT studentId
                         FROM matching_rows
                         WHERE row_count = 1
                     );
                     """);
-            stmt.setString(1, fullName[0]);
-            stmt.setString(2, fullName[1]);
-            stmt.setString(3, fullName[2]);
-            stmt.executeUpdate();
+            stmt.setString(1, firstName);
+            stmt.setString(2, middleName);
+            stmt.setString(3, middleName);
+            stmt.setString(4, lastName);
+            rows_affected = stmt.executeUpdate();
+            conn.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
-        throw new NoSuchElementException();
+        if (rows_affected == 0) {
+            throw new NoSuchElementException();
+        }
     }
 
     private Connection connection() {

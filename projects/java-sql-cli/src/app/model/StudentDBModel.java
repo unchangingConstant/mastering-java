@@ -1,27 +1,20 @@
-package app.service;
+package app.model;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
-import app.dao.SQLAccess;
+import app.dao.StudentDBAccess;
 
 // Mostly in charge of complex data validation
-public class SQLService {
+public class StudentDBModel {
 
-    private SQLAccess dao;
+    private StudentDBAccess dao;
 
-    public SQLService(SQLAccess dao) {
+    public StudentDBModel(StudentDBAccess dao) {
         this.dao = dao;
     }
 
     public String insertStudent(String[] name) {
-
-        for (int i = 0; i < name.length; i++) {
-            if (!name[i].matches("[a-zA-Z]+")) {
-                return "Please use alphabetical characters.";
-            }
-        }
-
-        boolean daoResult = false;
 
         if (name.length == 3) {
             this.dao.insertStudent(name[0], name[1], name[2]);
@@ -36,8 +29,14 @@ public class SQLService {
         return this.dao.selectStudents();
     }
 
-    public String deleteStudent(String name) {
-        return null;
+    public String deleteStudent(String[] name) {
+        try {
+            this.dao.deleteStudent(name[0], name[1], name[2]);
+        } catch (NoSuchElementException e) {
+            return "No such student in database.";
+        }
+
+        return "Delete successful!";
     }
 
 }

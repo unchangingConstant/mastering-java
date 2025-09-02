@@ -42,7 +42,7 @@ Add following functionalities:
 
 - ~~Display all students~~
 - ~~Insert a student~~
-- Delete a student
+- ~~Delete a student~~
 - Insert a visit
 - Delete a visit
 - Display all of a student's visits

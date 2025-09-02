@@ -7,21 +7,21 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-import app.service.*;
+import app.model.*;
 
 /**
  * ROLE: Presentation layer for viewer, also gives user access to the controller
  * through the interface
  */
-public class SQLView {
+public class StudentDBView {
 
-    private SQLService service;
+    private StudentDBModel service;
     private PrintStream out;
     private InputStream in;
 
-    public SQLView(SQLService service, OutputStream out, InputStream in) {
+    public StudentDBView(StudentDBModel service, OutputStream out, InputStream in) {
         if (out == null || service == null || in == null) {
-            throw new IllegalStateException("Arguments for SQLView() can't be null");
+            throw new IllegalStateException("Arguments for StudentDBView() can't be null");
         }
         this.service = service;
         this.out = new PrintStream(out);
@@ -90,7 +90,16 @@ public class SQLView {
         String[] name = params.split("\\s+");
         String result = null;
 
-        // puts this logic in the service layer
+        for (int i = 0; i < name.length; i++) {
+            if (!name[i].matches("[a-zA-Z]+")) {
+                this.out.println("Invalid name format, must use alpha chars");
+                return;
+            }
+        }
+
+        // puts this logic in the service layer or nah? service layer should handle
+        // validation that needs db access SKIM entire project for where you can
+        // implement these ideas
         switch (name.length) {
             case 2:
                 result = this.service.insertStudent(new String[] { name[0], name[1] });
@@ -117,7 +126,24 @@ public class SQLView {
     }
 
     private void deleteStudent(String params) {
-        throw new NoSuchElementException();
+
+        String[] name = params.split("\\s+");
+        String result = null;
+
+        switch (name.length) {
+            case 2:
+                result = this.service.deleteStudent(new String[] { name[0], null, name[1] });
+                break;
+            case 3:
+                result = this.service.deleteStudent(new String[] { name[0], name[1], name[2] });
+                break;
+            default:
+                // write better error message
+                result = "Invalid name format, must be 2 or 3 words long";
+                break;
+        }
+
+        this.out.println(result);
     }
 
     private void error() {
